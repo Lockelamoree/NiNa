@@ -1,0 +1,30 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Orbitron', sans-serif;
+    background-color: #0d0d0d;
+    color: #ff77ff; /* Pinkish color */
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    color: #ff77ff; /* Pinkish color */
+    text-shadow: 0 0 10px #ff77ff;
+}
+
+input[type="text"] {
+    width: 80%;
+    border: 2px solid #00ffea;
+    background-color: #0d0d0d;
+    color: #ff77ff; /* Pinkish color */
+    border-radius: 5px;
+}
+
+.chat-box p {
+    color: #ff77ff; /* Pinkish color for chat messages */
+}

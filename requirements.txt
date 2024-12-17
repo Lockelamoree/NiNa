@@ -1,0 +1,10 @@
+langchain
+chromadb
+gpt4all
+pypdf
+tiktoken
+poppler-utils
+langchain-community
+langchain-ollama
+flask
+requests

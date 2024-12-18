@@ -1,16 +1,16 @@
 # NiNa
 
-NiNa is a local environment setup for experimenting with Large Language Models (LLMs) using [Ollama](https://docs.ollama.ai/) as a backend. This repository provides a Docker Compose configuration and a basic framework to integrate your chosen LLM model into a containerized environment.
+NiNa is a local environment setup for experimenting with Large Language Models (LLMs) using [Ollama](https://docs.ollama.ai/) as a backend. This repository provides a Docker Compose configuration and a basic framework to integrate your chosen LLM model into a containerized environment.In addition, NiNa supports a basic Retrieval Augmented Generation (RAG) setup that utilizes a local PDF folder as the document source for context retrieval.
 
 ## Overview
+This project aims to simplify local experimentation and development workflows with LLMs. By leveraging Docker Compose, it encapsulates dependencies, ensuring a smoother start-up process and easier model swapping. It is designed to work alongside Ollama, a tool that streamlines model management and provides a straightforward API for interacting with large language models locally.
 
-This project aims to simplify the local experimentation and development workflow with LLMs. By leveraging Docker Compose, it encapsulates dependencies, ensuring a smoother start-up process and easier model swapping. It is designed to work alongside Ollama, a tool that streamlines model management and provides a straightforward API for interacting with large language models locally.
+Key features:
 
-## Features
-
-- **Modular Setup:** Easily switch between different LLMs by updating environment variables.
-- **Containerized Services:** All components run within Docker containers, ensuring consistency across environments.
-- **Local Integration:** Ollama runs on your host machine, providing easy model management and retrieval.
+Modular LLM Integration: Easily switch between different LLMs by updating environment variables.
+RAG with Local PDFs: The included Docker services can handle retrieval-augmented generation by using local PDFs for context. Simply drop your PDFs into the specified folder and the retrieval service will index and serve their content.
+Containerized Services: All components run within Docker containers, ensuring consistency and simplifying setup.
+Local Integration with Ollama: Ollama runs on your host machine, providing easy model management, retrieval, and usage.
 
 ## Prerequisites
 

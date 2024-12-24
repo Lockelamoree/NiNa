@@ -50,7 +50,7 @@ Local Integration with Ollama: Ollama runs on your host machine, providing easy 
 ```
 6. Use docker-compose up to start the container
 7. The NiNa UI with the RAG Component is now reachable at localhost:8000
-8. If you just want to use my finetuned LLM without RAG, you can just download my LLM via Ollama pull and the use a UI like for Example OpenWebUI: https://github.com/open-webui/open-webui
+8. If you just want to use my finetuned LLM without RAG, you can just download my LLM via Ollama pull and then use a UI like for Example OpenWebUI: https://github.com/open-webui/open-webui
 
 ## Configuration
 

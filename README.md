@@ -33,6 +33,24 @@ Local Integration with Ollama: Ollama runs on your host machine, providing easy 
    Ensure you have Docker and Docker Compose installed:
    - [Install Docker](https://docs.docker.com/get-docker/)
    - [Install Docker Compose](https://docs.docker.com/compose/install/)
+  
+## Easiest Way to start:
+1. Make sure Ollama is installed and that you have pulled the LLM you want to use.
+2. Clone this Repository with git clone
+3. Edit the docker-compose.yml
+4. Make sure that under environment variables the correct model name of your local model is listed:
+   ```
+    environment:
+      - MODEL_NAME=hf.co/LockeLamora2077/NiNa  # Specify model
+   ```
+5. Change the Volume mapping within the Docker-Compose file to your local pdf folder:
+  ```
+    volumes:
+      - 'your_pdf_folder_path':/app/pdf  # Mount PDFs directory from your local directory
+```
+6. Use docker-compose up to start the container
+7. The NiNa UI with the RAG Component is now reachable at localhost:8000
+8. If you just want to use my finetuned LLM without RAG, you can just download my LLM via Ollama pull and the use a UI like for Example OpenWebUI: https://github.com/open-webui/open-webui
 
 ## Configuration
 

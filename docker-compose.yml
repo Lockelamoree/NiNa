@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    image: lockelamore2077/nina 
+    container_name: nina-frontend
+    environment:
+      - MODEL_NAME=hf.co/LockeLamora2077/NiNa  # Specify model
+    ports:
+      - "8000:8000"
+    volumes:
+      - 'your_pdf_folder_path'/app/pdf  # Mount PDFs directory
+    depends_on:
+      - model-puller
+    networks:
+      - ollama-network
+
+volumes:
+  ollama_data: {}
+
+networks:
+  ollama-network: {}

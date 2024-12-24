@@ -9,9 +9,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - 'your_pdf_folder_path'/app/pdf  # Mount PDFs directory
-    depends_on:
-      - model-puller
+      - 'your_pdf_folder_path':/app/pdf  # Mount PDFs directory from your local directory
     networks:
       - ollama-network
 

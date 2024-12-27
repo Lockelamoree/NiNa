@@ -121,11 +121,40 @@
         .chat-box .assistant {
             color: #f1f7f6;
         }
+         /* Button Positioning */
+        .bottom-left-button {
+            position: absolute;
+            bottom: 20px; /* Distance from the bottom of the page */
+            left: 20px; /* Distance from the left of the page */
+        }
+
+        .bottom-left-button button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #75e3e5;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .bottom-left-button button:hover {
+            background-color: #0056b3;
+        }
+
+        .bottom-left-button button.selected {
+            background-color: #28a745; /* Green color for selected button */
+            color: white;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    
     <!-- Chat Interface -->
     <div class="container">
+    
         <h1>Welcome to NiNa - Your IT Security Assistant</h1>
         <form method="POST" action="/query" id="chatForm">
             <div class="input-area">
@@ -167,5 +196,11 @@
             }, 100);
         });
     </script>
+   <form method="POST" action="/" class="template-selector bottom-left-button">
+    <button type="submit" name="template" value="clean.html" 
+        class="{% if current_template == 'clean.html' %}selected{% endif %}">
+        Minimal Template
+    </button>
+</form>
 </body>
 </html>

@@ -1,3 +1,5 @@
+from flask import Flask, render_template, request
+import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import GPT4AllEmbeddings
@@ -7,14 +9,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import RetrievalQA
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import sys
-import os
 import glob
-from flask import Flask, request, jsonify, render_template_string
-from flask import Flask, render_template, request, redirect, url_for
-import requests
-import json
-
-from threading import Thread
 
 class SuppressStdout:
     """
@@ -31,10 +26,6 @@ class SuppressStdout:
         sys.stdout.close()
         sys.stdout = self._original_stdout
         sys.stderr = self._original_stderr
-
-
-
-
 
 def load_and_split_files(directory_path, chunk_size=500, chunk_overlap=0):
     """
@@ -89,7 +80,6 @@ def get_prompt_template():
     )
     return PromptTemplate(input_variables=["context", "question"], template=template)
 
-
 def initialize_llm():
     """
     Initializes the OllamaLLM with the specified model (provided via environment variable) and streaming callback handler.
@@ -102,49 +92,72 @@ def initialize_llm():
         temperature=0.0
     )
 
+# Flask App Setup
+app = Flask(__name__)
+
+# Chat history for both templates
+chat_histories = {
+    "index.html": [],
+    "clean.html": []
+}
+
+# Default template
+current_template = "index.html"
+
 def create_app(qa_chain):
     """
     Creates a Flask app to serve the QA system with an HTTP GUI and chat history.
     """
-    app = Flask(__name__)
-    chat_history = []
+    global app
 
-    @app.route("/", methods=["GET"])
+    @app.route("/", methods=["GET", "POST"])
     def index():
-        return render_template("index.html", chat_history=chat_history)
+        global current_template
+
+        if request.method == "POST":
+            # Handle template switching
+            selected_template = request.form.get("template")
+            if selected_template in chat_histories:
+                current_template = selected_template
+
+        return render_template(
+            current_template,
+            chat_history=chat_histories[current_template],
+            current_template=current_template
+        )
 
     @app.route("/query", methods=["POST"])
     def query():
+        global current_template
+
         query_text = request.form.get("query")
         if not query_text:
-            return render_template("index.html", chat_history=chat_history)
-        
+            return render_template(
+                current_template, 
+                chat_history=chat_histories[current_template],
+                current_template=current_template
+            )
+
+        # Mock result for demonstration
         result = qa_chain({"query": query_text})
         answer = result.get("result", "No response. Are you trying to stump me? 🤔")
-        try:
-            confidence = result.get("confidence", None)
-        except AttributeError:
-            confidence = None  # Handle cases where llm doesnt have confidence parameter
 
-        formatted_confidence = f"{confidence:.2%}" if isinstance(confidence, (int, float)) else None
-
-
-        # Append the new chat entry
-        chat_history.append({
+        # Append to the current template's chat history
+        chat_histories[current_template].append({
             "question": query_text,
-            "answer": answer,
-            "confidence": formatted_confidence  # Format confidence as a percentage
+            "answer": answer
         })
-        
-        # Keep only the last 5 messages
-        if len(chat_history) > 5:
-            chat_history.pop(0)  # Remove the oldest message
-        
-        return render_template("index.html", chat_history=chat_history)
 
+        # Limit chat history to last 5 entries
+        if len(chat_histories[current_template]) > 5:
+            chat_histories[current_template].pop(0)
+
+        return render_template(
+            current_template,
+            chat_history=chat_histories[current_template],
+            current_template=current_template
+        )
     return app
-
-
 
 def main():
     """
@@ -168,7 +181,6 @@ def main():
     app = create_app(qa_chain)
     print("Starting server at http://localhost:8000")
     app.run(host="0.0.0.0", port=8000)
-
 
 if __name__ == "__main__":
     main()

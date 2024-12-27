@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NiNa - Minimal Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            height: 90%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .chat-header {
+            padding: 10px 20px;
+            background: #000000;
+            color: white;
+            border-radius: 8px 8px 0 0;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .chat-box p {
+            margin: 10px 0;
+        }
+        .chat-box .user {
+            text-align: right;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .chat-box .assistant {
+            text-align: left;
+            font-weight: bold;
+            color: #555;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .chat-input button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            font-size: 16px;
+            color: white;
+            background-color: #000000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #000000;
+        }
+        .bottom-left-button {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
+        .bottom-left-button button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #000000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .bottom-left-button button:hover {
+            background-color: #ffffff;
+        }
+        .bottom-left-button button.selected {
+            background-color: #000000;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="chat-header">NiNa - Your IT Security Assistant</div>
+        <div class="chat-box">
+            {% for entry in chat_history %}
+                <p><span class="user">You:</span> {{ entry["question"] }}</p>
+                <p><span class="assistant">NiNa:</span> {{ entry["answer"] }}</p>
+            {% endfor %}
+        </div>
+        <form method="POST" action="/query" class="chat-input">
+            <input type="text" name="query" placeholder="Ask NiNa something..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <form method="POST" action="/" class="template-selector bottom-left-button">
+        <button type="submit" name="template" value="index.html" class="{% if current_template == 'index.html' %}selected{% endif %}">
+            Fancy Template
+        </button>
+    </form>
+
+</body>
+</html>

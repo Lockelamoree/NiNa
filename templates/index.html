@@ -140,6 +140,9 @@
             {% for entry in chat_history %}
                 <p class="user">You: {{ entry["question"] }}</p>
                 <p class="assistant">NiNa: {{ entry["answer"] }}</p>
+                {% if entry.confidence %}
+                    <strong>Confidence:</strong> {{ entry.confidence }}
+                {% endif %}
             {% endfor %}
         </div>
     </div>

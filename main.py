@@ -59,18 +59,20 @@ def load_and_split_files(directory_path, chunk_size=500, chunk_overlap=0):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         splits = text_splitter.split_text(text)
         all_splits.extend(splits)
-
     if not all_splits:
-        print("Warning: No PDF or TXT files found in the specified directory.")
+            print("Warning: No PDF or TXT files found in the specified directory.")
     return all_splits
 
 def create_vectorstore(splits):
     """
     Creates a Chroma vectorstore from the provided text splits using GPT4All embeddings.
+    If no splits are provided, an empty vectorstore is created.
     """
+    if not splits:
+        print("No documents to index. Creating an empty vectorstore.")
+        splits = ["No data available"]  # Placeholder document to avoid failure
     with SuppressStdout():
         return Chroma.from_documents(documents=splits, embedding=GPT4AllEmbeddings())
-
 
 def get_prompt_template():
     """
@@ -119,9 +121,20 @@ def create_app(qa_chain):
         
         result = qa_chain({"query": query_text})
         answer = result.get("result", "No response. Are you trying to stump me? 🤔")
-        
+        try:
+            confidence = result.get("confidence", None)
+        except AttributeError:
+            confidence = None  # Handle cases where llm doesnt have confidence parameter
+
+        formatted_confidence = f"{confidence:.2%}" if isinstance(confidence, (int, float)) else None
+
+
         # Append the new chat entry
-        chat_history.append({"question": query_text, "answer": answer})
+        chat_history.append({
+            "question": query_text,
+            "answer": answer,
+            "confidence": formatted_confidence  # Format confidence as a percentage
+        })
         
         # Keep only the last 5 messages
         if len(chat_history) > 5:

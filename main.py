@@ -36,36 +36,41 @@ def detect_hashes(query):
 
 def query_abusech(hashes):
     """
-    Query the Abuse.ch Malware Bazaar API with the provided list of hashes.
+    Query the Abuse.ch Malware Bazaar API with each hash separately.
+    Aggregate the results into a single JSON response.
     """
-    data = {"query": "get_info", "hash": ';'.join(hashes)}
-    print(data)
-    try:
-        response = requests.post(ABUSECH_API_URL, headers=headers, data=data)
-        print("Response Content:", response.text)
-        if response.status_code == 200:
-            return response.json()
-        return {"error": f"API responded with status code {response.status_code}"}
-    except Exception as e:
-        return {"error": f"API request failed: {str(e)}"}
+    results = []
+    for hash_value in hashes:
+        data = {"query": "get_info", "hash": hash_value}
+        print(data)
+        try:
+            response = requests.post(ABUSECH_API_URL, headers=headers, data=data)
+            print(f"Response for hash {hash_value}:", response.text)
+            if response.status_code == 200:
+                results.append(response.json())
+            else:
+                results.append({"error": f"API responded with status code {response.status_code} for hash {hash_value}"})
+        except Exception as e:
+            results.append({"error": f"API request failed for hash {hash_value}: {str(e)}"})
+    return {"results": results}
 
 def format_abusech_response(api_response):
     """
     Format the response from Abuse.ch for inclusion in the final LLM answer.
     """
-    if "error" in api_response:
-        return f"Error querying Abuse.ch API: {api_response['error']}"
-    
-    if "data" not in api_response or not api_response["data"]:
-        return "No information found for the provided hashes."
-    
     results = []
-    for entry in api_response["data"]:
-        file_name = entry.get("file_name", "N/A")
-        file_type = entry.get("file_type", "N/A")
-        signature = entry.get("signature", "N/A")
-        results.append(f"File: {file_name}, Type: {file_type}, Signature: {signature}")
-    
+    for response in api_response["results"]:
+        if "error" in response:
+            results.append(response["error"])
+        elif "data" in response and response["data"]:
+            for entry in response["data"]:
+                hash_value = entry.get("sha256_hash", "Unknown hash")
+                file_name = entry.get("file_name", "N/A")
+                file_type = entry.get("file_type", "N/A")
+                signature = entry.get("signature", "N/A")
+                results.append(f"File: {file_name}, sha256_hash:{hash_value} Type: {file_type}, Signature: {signature}---------------------------------------------------------------------------------------------------------------------")
+        else:
+            results.append("No information found for one or more provided hashes.")
     return "\n".join(results)
 
 class SuppressStdout:

@@ -10,6 +10,68 @@ from langchain.chains import RetrievalQA
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import sys
 import glob
+import re
+import requests
+from flask import Flask, request, jsonify
+
+
+ABUSE_API_KEY= os.getenv("ABUSE_API_KEY")
+
+ABUSECH_API_URL = "https://mb-api.abuse.ch/api/v1/"
+headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Auth-Key": f"{ABUSE_API_KEY}" 
+    }
+
+
+
+
+def detect_hashes(query):
+    """
+    Detect potential file hashes (MD5, SHA-1, SHA-256) in the query using regular expressions.
+    """
+    hash_patterns = r'(?<![a-fA-F0-9])[a-fA-F0-9]{32}(?![a-fA-F0-9])|(?<![a-fA-F0-9])[a-fA-F0-9]{40}(?![a-fA-F0-9])|(?<![a-fA-F0-9])[a-fA-F0-9]{64}(?![a-fA-F0-9])'
+    return re.findall(hash_patterns, query)
+
+
+def query_abusech(hashes):
+    """
+    Query the Abuse.ch Malware Bazaar API with each hash separately.
+    Aggregate the results into a single JSON response.
+    """
+    results = []
+    for hash_value in hashes:
+        data = {"query": "get_info", "hash": hash_value}
+        print(data)
+        try:
+            response = requests.post(ABUSECH_API_URL, headers=headers, data=data)
+            print(f"Response for hash {hash_value}:", response.text)
+            if response.status_code == 200:
+                results.append(response.json())
+            else:
+                results.append({"error": f"API responded with status code {response.status_code} for hash {hash_value}"})
+        except Exception as e:
+            results.append({"error": f"API request failed for hash {hash_value}: {str(e)}"})
+    return {"results": results}
+
+def format_abusech_response(api_response):
+    """
+    Format the response from Abuse.ch for inclusion in the final LLM answer.
+    """
+    results = []
+    for response in api_response["results"]:
+        if "error" in response:
+            results.append(response["error"])
+        elif "data" in response and response["data"]:
+            for entry in response["data"]:
+                hash_value = entry.get("sha256_hash", "Unknown hash")
+                file_name = entry.get("file_name", "N/A")
+                file_type = entry.get("file_type", "N/A")
+                signature = entry.get("signature", "N/A")
+                results.append(f"File: {file_name}, sha256_hash:{hash_value} Type: {file_type}, Signature: {signature}---------------------------------------------------------------------------------------------------------------------")
+        else:
+            results.append("No information found for one or more provided hashes.")
+    return "\n".join(results)
 
 class SuppressStdout:
     """
@@ -128,37 +190,56 @@ def create_app(qa_chain):
 
     @app.route("/query", methods=["POST"])
     def query():
+        """
+        Process the user's query, detect hashes, query Abuse.ch API if necessary,
+        and return an enhanced answer while maintaining chat history.
+        """
         global current_template
 
-        query_text = request.form.get("query")
-        if not query_text:
+        # Get the user's query
+        user_query = request.form.get("query")
+        if not user_query:
             return render_template(
-                current_template, 
+                current_template,
                 chat_history=chat_histories[current_template],
                 current_template=current_template
             )
 
-        # Mock result for demonstration
-        result = qa_chain({"query": query_text})
-        answer = result.get("result", "No response. Are you trying to stump me? 🤔")
+        # Detect hashes in the query
+        detected_hashes = detect_hashes(user_query)
 
-        # Append to the current template's chat history
+        # If hashes are found, query Abuse.ch and integrate the results
+        api_response_text = ""
+        if detected_hashes:
+            # Deduplicate hashes for the API call
+            unique_hashes = list(set(detected_hashes))
+            api_response = query_abusech(unique_hashes)
+            api_response_text = format_abusech_response(api_response)
+
+        # Use the QA chain to generate an answer
+        result = qa_chain({"query": user_query})
+        llm_answer = result.get("result", "No response. Are you trying to stump me? 🤔")
+
+        # Enhance the LLM answer with the Abuse.ch response
+
+        # Append the enhanced answer to the current template's chat history
         chat_histories[current_template].append({
-            "question": query_text,
-            "answer": answer
+            "question": user_query,
+            "answer": llm_answer,
+            "malware_bazaar": api_response_text
         })
 
         # Limit chat history to last 5 entries
         if len(chat_histories[current_template]) > 5:
             chat_histories[current_template].pop(0)
 
+        # Render the updated chat history and template
         return render_template(
             current_template,
             chat_history=chat_histories[current_template],
             current_template=current_template
         )
     return app
-
 def main():
     """
     Main function to run the PDF-based QA retrieval system as a Flask server with an HTTP GUI.

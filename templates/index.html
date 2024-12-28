@@ -169,6 +169,9 @@
             {% for entry in chat_history %}
                 <p class="user">You: {{ entry["question"] }}</p>
                 <p class="assistant">NiNa: {{ entry["answer"] }}</p>
+                {% if entry.malware_bazaar%}
+                    <p class="assistant">Additional Context from MalwareBazaar: {{ entry["malware_bazaar"] }}</p>
+                {% endif %}
                 {% if entry.confidence %}
                     <strong>Confidence:</strong> {{ entry.confidence }}
                 {% endif %}

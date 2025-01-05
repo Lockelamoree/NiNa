@@ -6,6 +6,7 @@ services:
     container_name: nina-frontend
     environment:
       - MODEL_NAME=hf.co/LockeLamora2077/NiNa  # Specify model
+      - ABUSE_API_KEY='' # your abuse.ch api key here
     ports:
       - "8000:8000"
     volumes:

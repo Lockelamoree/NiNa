@@ -14,7 +14,11 @@ Feel free to use my finetuned llama 3.1 LLM NiNa: https://huggingface.co/LockeLa
 Modular LLM Integration: Easily switch between different LLMs by updating environment variables.
 RAG with Local PDFs: The included Docker services can handle retrieval-augmented generation by using local PDFs for context. Simply drop your PDFs into the specified folder and the retrieval service will index and serve their content.
 Containerized Services: All components run within Docker containers, ensuring consistency and simplifying setup.
-Local Integration with Ollama: Ollama runs on your host machine, providing easy model management, retrieval, and usage.
+Local Integration with Ollama: Ollama runs on your host machine, providing easy model management, retrieval, and usage.+
+You can optionally enhance the llm response with data from abuse.ch by providing an ABUSE_API_KEY. 
+If there is a file hash in the prompt to the LLM, the response will be enhanced with data from abuse.ch.
+Get API Key here:
+
 
 ## Prerequisites
 
@@ -58,11 +62,12 @@ Local Integration with Ollama: Ollama runs on your host machine, providing easy 
 
    LLM_NAME=hf.co/LockeLamora2077/NiNaa
    LLM_HOST=host.docker.internal
-  
+   ABUSE_API_KEY='your_abuse_ch_key_here'
    ```
 
    - **LLM_NAME**: The name of the model you pulled with Ollama.
    - **LLM_HOST**: Should be set to `host.docker.internal` (for macOS/Windows) or `172.17.0.1` (on Linux) so the containers can communicate with your host machine’s Ollama instance.
+   - **ABUSE_API_KEY**: Optional abuse.ch API Key, get it here: https://auth.abuse.ch/user/me
 
 2. **Update Docker Compose**  
    Review `docker-compose.yml` and ensure it references `LLM_NAME`, `LLM_HOST`, and the volume mapping to make sure your local pdf folder is acessible. 
